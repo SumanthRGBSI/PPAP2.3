@@ -895,13 +895,13 @@
         <div class="flex items-center gap-3">
             <!-- Expanded/collapsible buttons -->
             <div x-show="open"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 scale-100"
-                 x-transition:leave-end="opacity-0 scale-95"
-                 class="flex items-center gap-3"
+                 x-transition:enter="transition-transform transition-opacity ease-out duration-300"
+                 x-transition:enter-start="opacity-0 -translate-x-2 scale-x-0"
+                 x-transition:enter-end="opacity-100 translate-x-0 scale-x-100"
+                 x-transition:leave="transition-transform transition-opacity ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-x-0 scale-x-100"
+                 x-transition:leave-end="opacity-0 -translate-x-2 scale-x-0"
+                 class="flex items-center gap-3 transform-gpu origin-right"
                  style="display: none;"
                  >
                 <button class="bg-white text-gray-800 font-semibold px-5 py-2 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2" title="Update an element">
@@ -913,7 +913,7 @@
             </div>
     
             <!-- Chevron Toggle Button -->
-            <button @click="open = !open; $nextTick(() => lucide.createIcons())" class="bg-white text-gray-700 rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform hover:scale-110 transition-transform duration-200">
+            <button @click="open = !open; $nextTick(() => lucide.createIcons())" :aria-expanded="open.toString()" class="bg-white text-gray-700 rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform hover:scale-110 transition-all duration-200" :class="{ 'translate-x-1': open }">
                 <i data-lucide="chevron-left" class="w-6 h-6 transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
             </button>
             
