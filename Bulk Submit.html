@@ -166,6 +166,7 @@
     const okConfirm = document.getElementById('okConfirm');
     const expandAllBtn = document.getElementById('expandAll');
     const collapseAllBtn = document.getElementById('collapseAll');
+    const expandedDetails = new Set();
 
     const phaseCollapsed = new Map(phases.map(p => [p.id, false]));
 
@@ -215,8 +216,7 @@
         el.files.push(...toAdd);
         el.status = 'Draft';
         render();
-        const details = document.getElementById(`details-${el.id}`);
-        if (details && details.classList.contains('hidden')) details.classList.remove('hidden');
+        
       });
     }
 
@@ -247,6 +247,7 @@
           const tr = document.createElement('tr');
           tr.className = 'even:bg-slate-50';
           const filesCount = el.files.length;
+          const isExpanded = expandedDetails.has(el.id);
           tr.innerHTML = `
             <td class="p-3 align-top"><input type="checkbox" class="h-5 w-5 text-primary-600 border-gray-300 rounded row-select" data-id="${el.id}" ${el.selected ? 'checked' : ''}></td>
             <td class="p-3 align-top text-slate-800 font-medium" title="${el.name}"><p class="truncate w-80">${el.name}</p></td>
@@ -260,22 +261,19 @@
                 <div class="mt-2 flex items-center gap-2 justify-center">
                   <input id="file-${el.id}" type="file" class="hidden" multiple />
                   <button class="px-3 py-1.5 bg-white border border-slate-300 rounded-md hover:bg-slate-50 text-slate-700 text-sm" data-action="add-files" data-id="${el.id}">Add Files</button>
-                  <button class="text-xs text-primary-700 hover:underline" data-action="toggle-files" data-id="${el.id}">Details</button>
+                  <button class="text-xs text-primary-700 hover:underline" data-action="toggle-files" data-id="${el.id}">Details (${filesCount})</button>
                 </div>
               </div>
-              <div id="details-${el.id}" class="mt-2 hidden">
+              <div id="details-${el.id}" class="mt-2 ${isExpanded ? "" : "hidden"}">
                 ${filesCount ? el.files.map(f => `
                   <div class='flex items-center justify-between bg-slate-50 border border-slate-200 rounded-md px-2 py-1 mb-1'>
                     <div class='min-w-0 flex-1'>
                       <p class='truncate text-sm text-slate-700' title='${f.name}'>${f.name} • ${(f.size/1024).toFixed(1)} KB ${f.confidential ? "<span class=\"ml-2 text-amber-700 font-semibold\">Confidential</span>" : ""}</p>
                     </div>
-                    <div class='menu' data-file-menu>
-                      <button class='text-slate-600 hover:text-slate-900 px-2 py-1' data-action='toggle-menu'>•••</button>
-                      <div class='menu-list'>
-                        <button class='menu-item' data-action='view-file' data-id='${el.id}' data-file='${f._id}'>View</button>
-                        <button class='menu-item' data-action='toggle-confidential' data-id='${el.id}' data-file='${f._id}'>${f.confidential ? 'Make Public' : 'Make Confidential'}</button>
-                        <button class='menu-item text-red-600' data-action='remove-file' data-id='${el.id}' data-file='${f._id}'>Delete</button>
-                      </div>
+                    <div class='flex items-center gap-2'>
+                      <button class='px-2 py-1 text-xs bg-white border border-slate-300 rounded hover:bg-slate-50' data-action='view-file' data-id='${el.id}' data-file='${f._id}'>View</button>
+                      <button class='px-2 py-1 text-xs bg-white border border-slate-300 rounded hover:bg-slate-50' data-action='toggle-confidential' data-id='${el.id}' data-file='${f._id}'>${f.confidential ? 'Unlock' : 'Lock'}</button>
+                      <button class='px-2 py-1 text-xs bg-white border border-red-300 text-red-700 rounded hover:bg-red-50' data-action='remove-file' data-id='${el.id}' data-file='${f._id}'>Remove</button>
                     </div>
                   </div>`).join('') : `<div class='text-sm text-slate-500'>No files attached.</div>`}
               </div>
@@ -327,8 +325,6 @@
             el.files.push(...files);
             el.status = 'Draft';
             render();
-            const details = document.getElementById(`details-${id}`);
-            if (details && details.classList.contains('hidden')) details.classList.remove('hidden');
             input.value = '';
           };
           input.click();
@@ -346,8 +342,6 @@
             el.files.push(...files);
             el.status = 'Draft';
             render();
-            const details = document.getElementById(`details-${id}`);
-            if (details && details.classList.contains('hidden')) details.classList.remove('hidden');
             input.value = '';
           }
           input.click();
@@ -357,23 +351,13 @@
       tableBody.querySelectorAll('button[data-action="toggle-files"]').forEach(btn => {
         btn.addEventListener('click', () => {
           const id = +btn.dataset.id;
-          const details = document.getElementById(`details-${id}`);
-          if (details) details.classList.toggle('hidden');
+          if (expandedDetails.has(id)) expandedDetails.delete(id); else expandedDetails.add(id);
+          render();
         });
       });
 
       // File menu actions (delegated)
-      tableBody.querySelectorAll('[data-file-menu]').forEach(menu => {
-        const toggleBtn = menu.querySelector('[data-action="toggle-menu"]');
-        toggleBtn?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          // Close other menus
-          tableBody.querySelectorAll('.menu.open').forEach(m => { if (m!==menu) m.classList.remove('open'); });
-          menu.classList.toggle('open');
-        });
-      });
-
-      document.addEventListener('click', () => tableBody.querySelectorAll('.menu.open').forEach(m => m.classList.remove('open')));
+      
 
       tableBody.querySelectorAll('[data-action="view-file"]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -391,8 +375,6 @@
           const f = el.files.find(ff => ff._id === fileId);
           if (f) f.confidential = !f.confidential;
           render();
-          const details = document.getElementById(`details-${id}`);
-          if (details) details.classList.remove('hidden');
         });
       });
 
@@ -405,8 +387,6 @@
           el.files = el.files.filter(ff => ff._id !== fileId);
           if (el.files.length === 0 && el.status !== 'Submitted') el.status = 'Not Submitted';
           render();
-          const details = document.getElementById(`details-${id}`);
-          if (details) details.classList.remove('hidden');
         });
       });
 
