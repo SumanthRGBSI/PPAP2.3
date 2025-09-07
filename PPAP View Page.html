@@ -894,7 +894,7 @@
     <div class="fixed bottom-8 right-8" x-data="{ open: false }" style="z-index: 100;">
         <div class="flex items-center gap-3">
             <!-- Expanded/collapsible buttons -->
-            <div x-show="open"
+            <div id="fab-expandable" x-show="open"
                  x-transition:enter="transition-transform transition-opacity ease-out duration-300"
                  x-transition:enter-start="opacity-0 -translate-x-2 scale-x-0"
                  x-transition:enter-end="opacity-100 translate-x-0 scale-x-100"
@@ -913,8 +913,8 @@
             </div>
     
             <!-- Chevron Toggle Button -->
-            <button @click="open = !open; $nextTick(() => lucide.createIcons())" :aria-expanded="open.toString()" class="bg-white text-gray-700 rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform hover:scale-110 transition-all duration-200" :class="{ 'translate-x-1': open }">
-                <i data-lucide="chevron-left" class="w-6 h-6 transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
+            <button @click="open = !open; $nextTick(() => lucide.createIcons())" :aria-expanded="open.toString()" aria-controls="fab-expandable" class="bg-white text-gray-700 rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform hover:scale-110 transition-all duration-300 origin-right" :class="{ 'translate-x-1 scale-x-110 pr-4': open }">
+                <i data-lucide="chevron-left" class="w-6 h-6 transition-transform duration-300" :class="{ 'rotate-180 scale-110': open }"></i>
             </button>
             
             <!-- Always visible buttons -->
